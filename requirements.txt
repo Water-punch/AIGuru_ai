@@ -1,5 +1,9 @@
+#.\venv\Scripts\Activate 이거 해야 flask 실행가능
+
 # pip install 이름
 
 openai
 python-dotenv
 flask
+flask-cors
+

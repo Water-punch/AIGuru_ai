@@ -1,10 +1,12 @@
 from flask import Flask, request, jsonify, render_template
 from dotenv import load_dotenv
 from openai import OpenAI
+from flask_cors import CORS
 
 load_dotenv()
 
 app = Flask(__name__)
+CORS(app)
 
 client = OpenAI()
 
@@ -12,14 +14,14 @@ client = OpenAI()
 def index():
     return render_template('index.html')
 
-@app.route('/conversation', methods=['GET'])
+@app.route('/conversation', methods=['POST'])
 def firstConversation():
     # db ---> flask: [text, feeling, QnA_result] 
-    # text = request.json.get('text')
+    question = request.json['question']
 
     # question = '1년째 연애중인 20대 남성이야. 요즘따라 여자친구가 연락이 잘 안되고 자꾸 나를 피하는 느낌이 들어. 헤어지자는 뜻일까?'
-    question = '똥'
-    feeling = 'sad'
+    # question = '똥'
+    feeling = 'sad' 
     QnA_result = { '분류' : '이별', } 
     
     prompt = f'''
@@ -41,7 +43,7 @@ def firstConversation():
         messages=[
             {
                 'role': 'system',
-                'content': '너는 연애의 달인으로, 너의 역할은 사람들의 고민에 공감하고 명확한 해결책을 제시하는거야. 노인의 말투, 반말을 사용해서 대답해야해.'
+                'content': '너는 연애의 달인으로, 너의 역할은 사람들의 고민에 공감하고 명확한 해결책을 제시하는거야. 공자, 맹자의 말투, 반말을 사용해서 대답해야해. 너의 역할에 대해서는 언급하지마.'
             },
             {
                 'role': 'user',
