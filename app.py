@@ -19,13 +19,6 @@ def generate_random_id():
 def index():
   return render_template('index.html')
 
-'''
-* 임시 데이터
-question = '1년째 연애중인 20대 남성이야. 요즘따라 여자친구가 연락이 잘 안되고 자꾸 나를 피하는 느낌이 들어. 헤어지자는 뜻일까?'
-question = '똥'
-QnA_result = { '분류' : '이별', } 
-'''
-
 # 첫 채팅 API
 @app.route('/chat/first', methods=['POST'])
 def firstConversation():
@@ -42,17 +35,17 @@ def firstConversation():
  
   prompt = f'''
   참고사항: `
-  -질문의 종류: 이별에 관한 고민
   -연애에 대한 내용이 아닐 경우 해결책을 제시하지 말 것.
   -질문이 연애상담과 관련이 없을 경우 "장난칠거면 가라."라고 짧게 대답할 것.
-  -답변을 시작하기 전에 []에 질문을 요약하고 줄바꿈을 한 뒤 답변을 시작할 것.
-  `
+  ''{question}''
 
-  ```{question}```
-
-  참고사항을 참고해서 ```로 감싸진 질문에 대해 답변해줘.
-  답변에 [답변]을 붙이지마.
-  연애와 관련없는 질문에는 짧게 대답해.
+  참고사항을 참고해서 ''로 감싸진 질문에 대해 답변해줘.
+  아래 답변 포맷을 지켜서 그대로 답변해.
+  
+  <답변 포맷>
+  [주제]: '질문을 3단어 이내로 요약' 
+  [상담]: 
+  '질문에 대한 자연스러운 상담.'
 
   '''
 
@@ -84,7 +77,7 @@ def firstConversation():
   history.append(chatInfo)
 
   # history에 input과 output 저장
-  history.append([question, response_message])
+  history.append([question, response_message.split('\n')[2:]])
   print(history)
 
   # message 객체의 content 속성을 사용
