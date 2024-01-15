@@ -145,4 +145,4 @@ def additionalConversation():
 
 # flask run or python app.py
 if __name__ == '__main__':  
-  app.run('0.0.0.0',port=5000,debug=True)
+  app.run(host='0.0.0.0',port=5000,debug=True)
