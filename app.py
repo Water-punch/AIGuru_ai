@@ -3,6 +3,9 @@ from flask_cors import CORS
 from services.gpt_service import conversation
 import re, random
 from utils.gpt_util import generate_random_id, parsing_gpt_answer
+import tensorflow as tf
+from flask import g
+from transformers import TFBertModel, pipeline , BertTokenizer, TFBertForSequenceClassification
 
 app = Flask(__name__)
 CORS(app)
@@ -10,6 +13,24 @@ CORS(app)
 @app.route('/')
 def index():
   return render_template('index.html')
+
+# 모델을 이용하여 감정 분류
+@app.route('/analysis', methods=['GET'])
+def textAnalysis():
+  requestData = request.json
+  print('requestData: ', requestData['content'])
+
+  model_name = "guru.h5"
+  tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-cased')
+  classifier = pipeline("sentiment-analysis", model=model_name, tokenizer=tokenizer)
+  result = classifier(requestData['content'])
+  
+  if result[0]["label"] == "LABEL_1":
+    print('그린라이트')
+  else:
+    print('레드라이트')
+
+  return jsonify({"response": result})
 
 # 첫 채팅 API
 @app.route('/chat/first', methods=['POST'])
@@ -63,6 +84,11 @@ def additionalConversation():
 
   # message 객체의 content 속성을 사용
   return jsonify({"response": history})
+
+def load_model():
+  load_model = tf.keras.models.load_model('./lib/guru.h5')
+  
+  return load_model
 
 # flask run or python app.py
 if __name__ == '__main__':  
