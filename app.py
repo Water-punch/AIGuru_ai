@@ -25,12 +25,15 @@ def textAnalysis():
   classifier = pipeline("sentiment-analysis", model=model_name, tokenizer=tokenizer)
   result = classifier(requestData['content'])
   
-  if result[0]["label"] == "LABEL_1":
-    print('그린라이트')
-  else:
-    print('레드라이트')
+  print(result[0])
 
-  return jsonify({"response": result})
+  # 그린라이트: 1 / 레드라이트: 0
+  if result[0]["label"] == "LABEL_1":
+    response_message = 1
+  else:
+    response_message = 0
+
+  return jsonify({"position": response_message})
 
 # 첫 채팅 API
 @app.route('/chat/first', methods=['POST'])
