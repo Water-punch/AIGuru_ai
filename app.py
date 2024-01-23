@@ -27,7 +27,7 @@ def firstConversation():
   # 임시로 생성한 10자리 난수 id
   chatId = generate_random_id()
 
-  # {chatId, title} history [0]에 저장
+  # [chatId, title] history [0]에 저장
   chatInfo = [chatId, title]
   history.append(chatInfo)
 
@@ -36,7 +36,8 @@ def firstConversation():
 
   # history에 첫 문답 저장
   chat_history = [requestData['question'], counselingText]
-  history.append(chat_history)
+  history.append([])
+  history[1].append(chat_history)
   print('history:', history)
 
   # message 객체의 content 속성을 사용
@@ -44,8 +45,8 @@ def firstConversation():
 
 
 # 추가채팅 API
-@app.route('/chat:chatId', methods=['POST'])
-def additionalConversation():
+@app.route('/chat/<chatId>', methods=['POST'])
+def additionalConversation(chatId):
 
   history = request.json['history']
   requestData = request.json

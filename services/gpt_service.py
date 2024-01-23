@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 from openai import OpenAI
+import copy
 
 load_dotenv()
 client = OpenAI()
@@ -12,7 +13,7 @@ def conversation(requestData):
 
   # 추가 채팅을 위한 history
   if history:
-    lastChatArray = history[1]
+    lastChatArray = copy.deepcopy(history[1])
     lastChat = ''
     for chat in lastChatArray:
       chat[0] = "[user's question]:" + chat[0] +'\n'
