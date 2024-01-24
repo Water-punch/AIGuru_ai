@@ -3,6 +3,7 @@ from flask_cors import CORS
 from services.gpt_service import conversation
 import re, random
 from utils.gpt_util import generate_random_id, parsing_gpt_answer
+from utils.model_util import parse_response_by_label
 import tensorflow as tf
 from flask import g
 from transformers import TFBertModel, pipeline , BertTokenizer, TFBertForSequenceClassification
@@ -10,30 +11,49 @@ from transformers import TFBertModel, pipeline , BertTokenizer, TFBertForSequenc
 app = Flask(__name__)
 CORS(app)
 
+# classifier를 전역 변수로 선언
+classifier = False
+
 @app.route('/')
 def index():
   return render_template('index.html')
 
+@app.route('/test', methods=['GET'])
+def test_api():
+  requestData = request;
+  print(requestData)
+
+  return jsonify({"position": "요청 성공"})
+
 # 모델을 이용하여 감정 분류
-@app.route('/analysis', methods=['GET'])
+@app.route('/analysis', methods=['POST'])
 def textAnalysis():
+  global classifier, tokenizer
+  print('classifier 확인: ', classifier)
+
+  # 전역 변수에 저장된 classifier가 없으면 새로 정의함
+  if not classifier:
+      model_name = "guru.h5"
+      tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-cased')
+      classifier = pipeline("sentiment-analysis", model=model_name, tokenizer=tokenizer)
+
   requestData = request.json
-  print('requestData: ', requestData['content'])
+  content = requestData['content']
 
-  model_name = "guru.h5"
-  tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-cased')
-  classifier = pipeline("sentiment-analysis", model=model_name, tokenizer=tokenizer)
-  result = classifier(requestData['content'])
+  # model_name = "guru.h5"
+  # tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-cased')
+  # classifier = pipeline("sentiment-analysis", model=model_name, tokenizer=tokenizer)
+
+  analysis_result = classifier(content)
+  print("result 확인: ", analysis_result)
   
-  print(result[0])
+  response_json = parse_response_by_label(analysis_result)
+  # response_json 예시
+  #   {
+  #     "position": "negative"
+  #   }
+  return jsonify(response_json)
 
-  # 그린라이트: 1 / 레드라이트: 0
-  if result[0]["label"] == "LABEL_1":
-    response_message = 1
-  else:
-    response_message = 0
-
-  return jsonify({"position": response_message})
 
 # 첫 채팅 API
 @app.route('/chat/first', methods=['POST'])
