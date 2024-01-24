@@ -15,9 +15,9 @@ CORS(app)
 def load_model():
   print('model을 불러오고 있습니다..')
   global classifier
-  model_name = "guru.h5"
+  model_name = "guru_model.h5"
   tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-cased')
-  classifier = pipeline("guru-analysis", model=model_name, tokenizer=tokenizer)
+  classifier = pipeline("text-classification", model=model_name, tokenizer=tokenizer)
   
   return classifier
 
