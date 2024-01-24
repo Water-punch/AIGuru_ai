@@ -3,9 +3,26 @@ from flask_cors import CORS
 from services.gpt_service import conversation
 import re, random
 from utils.gpt_util import generate_random_id, parsing_gpt_answer
+from utils.model_util import parse_response_by_label
+import tensorflow as tf
+from flask import g
+from transformers import TFBertModel, pipeline , BertTokenizer, TFBertForSequenceClassification
 
 app = Flask(__name__)
 CORS(app)
+
+
+def load_model():
+  print('model을 불러오고 있습니다..')
+  global classifier
+  model_name = "guru_model.h5"
+  tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-cased')
+  classifier = pipeline("text-classification", model=model_name, tokenizer=tokenizer)
+  
+  return classifier
+
+# classifier를 전역 변수로 선언
+classifier = load_model()  
 
 @app.route('/')
 def index():
@@ -64,6 +81,24 @@ def additionalConversation(chatId):
 
   # message 객체의 content 속성을 사용
   return jsonify({"response": history})
+
+# 모델을 이용하여 긍부정 분류
+@app.route('/analysis', methods=['POST'])
+def textAnalysis():
+  global classifier
+
+  # 전역 변수에 저장된 classifier가 없으면 새로 정의함
+  if not classifier:
+      print('model을 다시 불러옵니다..')
+      load_model()
+
+  content = request.json['content']
+  analysis_result = classifier(content)
+  print("분석결과: ", analysis_result)
+  
+  response_json = parse_response_by_label(analysis_result)
+  return jsonify(response_json)
+
 
 # flask run or python app.py
 if __name__ == '__main__':  
