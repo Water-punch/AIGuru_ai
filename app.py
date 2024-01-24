@@ -11,49 +11,22 @@ from transformers import TFBertModel, pipeline , BertTokenizer, TFBertForSequenc
 app = Flask(__name__)
 CORS(app)
 
+
+def load_model():
+  print('model을 불러오고 있습니다..')
+  global classifier
+  model_name = "guru.h5"
+  tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-cased')
+  classifier = pipeline("guru-analysis", model=model_name, tokenizer=tokenizer)
+  
+  return classifier
+
 # classifier를 전역 변수로 선언
-classifier = False
+classifier = load_model()  
 
 @app.route('/')
 def index():
   return render_template('index.html')
-
-@app.route('/test', methods=['GET'])
-def test_api():
-  requestData = request;
-  print(requestData)
-
-  return jsonify({"position": "요청 성공"})
-
-# 모델을 이용하여 감정 분류
-@app.route('/analysis', methods=['POST'])
-def textAnalysis():
-  global classifier, tokenizer
-  print('classifier 확인: ', classifier)
-
-  # 전역 변수에 저장된 classifier가 없으면 새로 정의함
-  if not classifier:
-      model_name = "guru.h5"
-      tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-cased')
-      classifier = pipeline("sentiment-analysis", model=model_name, tokenizer=tokenizer)
-
-  requestData = request.json
-  content = requestData['content']
-
-  # model_name = "guru.h5"
-  # tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-cased')
-  # classifier = pipeline("sentiment-analysis", model=model_name, tokenizer=tokenizer)
-
-  analysis_result = classifier(content)
-  print("result 확인: ", analysis_result)
-  
-  response_json = parse_response_by_label(analysis_result)
-  # response_json 예시
-  #   {
-  #     "position": "negative"
-  #   }
-  return jsonify(response_json)
-
 
 # 첫 채팅 API
 @app.route('/chat/first', methods=['POST'])
@@ -108,10 +81,23 @@ def additionalConversation():
   # message 객체의 content 속성을 사용
   return jsonify({"response": history})
 
-def load_model():
-  load_model = tf.keras.models.load_model('./lib/guru.h5')
+# 모델을 이용하여 긍부정 분류
+@app.route('/analysis', methods=['POST'])
+def textAnalysis():
+  global classifier
+
+  # 전역 변수에 저장된 classifier가 없으면 새로 정의함
+  if not classifier:
+      print('model을 다시 불러옵니다..')
+      load_model()
+
+  content = request.json['content']
+  analysis_result = classifier(content)
+  print("분석결과: ", analysis_result)
   
-  return load_model
+  response_json = parse_response_by_label(analysis_result)
+  return jsonify(response_json)
+
 
 # flask run or python app.py
 if __name__ == '__main__':  
