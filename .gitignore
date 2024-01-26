@@ -14,3 +14,5 @@ htmlcov/
 dist/
 build/
 *.egg-info/
+
+guru_model.h5/
